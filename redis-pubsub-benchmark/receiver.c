@@ -15,13 +15,16 @@ void onMessage(redisAsyncContext *c, void *reply, void *privdata) {
 
     if (r->type == REDIS_REPLY_ARRAY) {
         printf("On channel %s: %s\n", r->element[1]->str, r->element[2]->str);
-        if(strcmp(r->element[1]->str, "ringer") == 0 && r->element[2]->str != NULL)
-        {
-            char *cmd = strtok(r->element[2]->str, " ");
-            char *param = strtok(NULL, " ");
 
-            printf("Command: %s, param: %s\n", cmd, param);
-        }
+        unsigned long long received = strtoll(r->element[2]->str);
+        printf("\t%ull", received);
+//        if(strcmp(r->element[1]->str, "speedtest") == 0 && r->element[2]->str != NULL)
+//        {
+//            char *cmd = strtok(r->element[2]->str, " ");
+//            char *param = strtok(NULL, " ");
+//
+//            printf("Command: %s, param: %s\n", cmd, param);
+//        }
     }
 }
 
