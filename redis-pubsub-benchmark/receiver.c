@@ -24,33 +24,29 @@ void onMessage(redisAsyncContext *c, void *reply, void *privdata) {
     if (reply == NULL) return;
 
     if (r->type == REDIS_REPLY_ARRAY) {
-        //printf("On channel %s: %s\n", r->element[1]->str, r->element[2]->str);
-
         if (r->element[2]->str != NULL)
         {
           if (strcmp(r->element[2]->str, "end") == 0)
           {
-            printf("Min: %llu\tMax: %llu\tCount: %llu\tAvg: %.2f microseconds\n", min, max, count, (double)(sum/count));
-            redisAsyncCommand(c, onMessage, NULL, "UNSUBSCRIBE speedtest");
-            exit(0);
+              printf("Min: %llu\tMax: %llu\tCount: %llu\tAvg: %.2f microseconds\n", min, max, count, (double)(sum/count));
+              redisAsyncCommand(c, onMessage, NULL, "UNSUBSCRIBE speedtest");
+              exit(0);
           } else {
-            char *pEnd = NULL;
-            unsigned long long int received;
-            received = strtoull(r->element[2]->str, &pEnd, 10);
-            //printf("\t%llu\n", received);
+              char *pEnd = NULL;
+              unsigned long long int received;
+              received = strtoull(r->element[2]->str, &pEnd, 10);
 
-            long long diff = epoch_usec() - received;
-            //printf("\tDiff: %llu\n", diff);
+              long long diff = epoch_usec() - received;
 
-            if (diff > max)
-              max = diff;
+              if (diff > max)
+                max = diff;
 
-            if (diff < min)
-              min = diff;
+              if (diff < min)
+                min = diff;
 
-            sum += diff;
-            count++;
-          }
+              sum += diff;
+              count++;
+            }
         }
     }
 }
