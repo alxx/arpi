@@ -17,7 +17,7 @@ void onMessage(redisAsyncContext *c, void *reply, void *privdata) {
         printf("On channel %s: %s\n", r->element[1]->str, r->element[2]->str);
 
         unsigned long long received = strtoll(r->element[2]->str);
-        printf("\t%ull", received);
+        printf("\t%llu", received);
 //        if(strcmp(r->element[1]->str, "speedtest") == 0 && r->element[2]->str != NULL)
 //        {
 //            char *cmd = strtok(r->element[2]->str, " ");
