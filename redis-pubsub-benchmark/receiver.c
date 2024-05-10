@@ -16,7 +16,9 @@ void onMessage(redisAsyncContext *c, void *reply, void *privdata) {
     if (r->type == REDIS_REPLY_ARRAY) {
         printf("On channel %s: %s\n", r->element[1]->str, r->element[2]->str);
 
-        unsigned long long received = strtoll(r->element[2]->str);
+        char *pEnd;
+        unsigned long long int received;
+        received = strtoull(r->element[2]->str, &pEnd, 16);
         printf("\t%llu", received);
 //        if(strcmp(r->element[1]->str, "speedtest") == 0 && r->element[2]->str != NULL)
 //        {
