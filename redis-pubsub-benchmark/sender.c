@@ -1,10 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/time.h>
 
 #include "hiredis/hiredis.h"
 
 struct timeval tv;
-unsigned long long now, lastPulseAt, lastHookChangeAt, loopNow, firstPulseAt, numberDuration;
+unsigned long long now;
 
 redisContext *c;
 
@@ -14,7 +15,7 @@ unsigned long long epoch_usec()
    return (unsigned long long)(tv.tv_sec) * 1000000 + (unsigned long long)(tv.tv_usec) ;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
   c = redisConnect("127.0.0.1", 6379);
   if (c->err) {
@@ -23,11 +24,14 @@ int main()
   }
 
   now = epoch_usec();
+  char *p;
 
-  for(long long i=0; i<=10000; i++)
+  for(long long i=0; i<strtol(argv[1], &p, 10); i++)
   {
     redisCommand(c, "PUBLISH speedtest %llu", epoch_usec());
   }
+
+  redisCommand(c, "PUBLISH speedtest end");
 
   return 0;
 }

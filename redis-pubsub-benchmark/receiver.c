@@ -8,25 +8,50 @@
 #include "hiredis/async.h"
 #include "hiredis/adapters/libevent.h"
 
+struct timeval tv;
+
+unsigned long long min, max, count, sum;
+
+unsigned long long epoch_usec()
+{
+   gettimeofday(&tv, NULL);
+   return (unsigned long long)(tv.tv_sec) * 1000000 + (unsigned long long)(tv.tv_usec) ;
+}
+
 // called by hiredis when there's a new message posted on the SUBSCRIBEd channel
 void onMessage(redisAsyncContext *c, void *reply, void *privdata) {
     redisReply *r = reply;
     if (reply == NULL) return;
 
     if (r->type == REDIS_REPLY_ARRAY) {
-        printf("On channel %s: %s\n", r->element[1]->str, r->element[2]->str);
+        //printf("On channel %s: %s\n", r->element[1]->str, r->element[2]->str);
 
-        char *pEnd;
-        unsigned long long int received;
-        received = strtoull(r->element[2]->str, &pEnd, 16);
-        printf("\t%llu", received);
-//        if(strcmp(r->element[1]->str, "speedtest") == 0 && r->element[2]->str != NULL)
-//        {
-//            char *cmd = strtok(r->element[2]->str, " ");
-//            char *param = strtok(NULL, " ");
-//
-//            printf("Command: %s, param: %s\n", cmd, param);
-//        }
+        if (r->element[2]->str != NULL)
+        {
+          if (strcmp(r->element[2]->str, "end") == 0)
+          {
+            printf("Min: %llu\tMax: %llu\tCount: %llu\tAvg: %.2f microseconds\n", min, max, count, (double)(sum/count));
+            redisAsyncCommand(c, onMessage, NULL, "UNSUBSCRIBE speedtest");
+            exit(0);
+          } else {
+            char *pEnd = NULL;
+            unsigned long long int received;
+            received = strtoull(r->element[2]->str, &pEnd, 10);
+            //printf("\t%llu\n", received);
+
+            long long diff = epoch_usec() - received;
+            //printf("\tDiff: %llu\n", diff);
+
+            if (diff > max)
+              max = diff;
+
+            if (diff < min)
+              min = diff;
+
+            sum += diff;
+            count++;
+          }
+        }
     }
 }
 
@@ -40,6 +65,11 @@ int main()
       printf("error: %s\n", c->errstr);
       return 1;
   }
+
+  count = 0;
+  sum = 0;
+  max = 0;
+  min = 0;
 
   redisLibeventAttach(c, base);
   redisAsyncCommand(c, onMessage, NULL, "SUBSCRIBE speedtest");
